@@ -7,40 +7,45 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.casotratohecho.data.Cliente
 import com.example.casotratohecho.data.Cotizacion
+import com.example.casotratohecho.viewmodel.ClienteViewModel
 import com.example.casotratohecho.viewmodel.CotizacionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleClienteScreen(
-    cliente: Cliente?,
+    clienteId: Int,
+    clienteViewModel: ClienteViewModel,
     cotizacionViewModel: CotizacionViewModel,
-    onVolver: () -> Unit,
-    onNuevaCotizacionClick: () -> Unit
+    onVolverClick: () -> Unit,
+    onAgregarCotizacionClick: () -> Unit
 ) {
-    val cotizaciones by cotizacionViewModel.getCotizacionesPorCliente(cliente?.id ?: 0)
-        .collectAsStateWithLifecycle()
+    val clientes by clienteViewModel.clientes.collectAsStateWithLifecycle()
+    val cliente = clientes.find { it.id == clienteId }
+
+    val cotizacionesState = remember(clienteId) {
+        cotizacionViewModel.getCotizacionesPorCliente(clienteId)
+    }
+    val cotizaciones by cotizacionesState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(cliente?.nombre ?: "Detalle del Cliente") },
                 navigationIcon = {
-                    IconButton(onClick = onVolver) {
+                    IconButton(onClick = onVolverClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNuevaCotizacionClick) {
-                Icon(Icons.Default.Add, contentDescription = "Nueva Cotización")
+            FloatingActionButton(onClick = onAgregarCotizacionClick) {
+                Icon(Icons.Filled.Add, contentDescription = "Nueva Cotización")
             }
         }
     ) { innerPadding ->
@@ -48,37 +53,38 @@ fun DetalleClienteScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(16.dp)
         ) {
             cliente?.let {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
+                        Text(text = "RUT: ${it.rut}", style = MaterialTheme.typography.bodyLarge)
                         Text(text = "Empresa: ${it.empresa}", style = MaterialTheme.typography.bodyLarge)
-                        Text(text = "RUT: ${it.rut}", style = MaterialTheme.typography.bodyMedium)
-                        Text(text = "Correo: ${it.correo}", style = MaterialTheme.typography.bodyMedium)
                         Text(text = "Teléfono: ${it.telefono}", style = MaterialTheme.typography.bodyMedium)
+                        Text(text = "Correo: ${it.correo}", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
 
-            Text(
-                text = "Historial de Tratos y Cotizaciones",
-                style = MaterialTheme.typography.titleMedium
-            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Cotizaciones", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (cotizaciones.isEmpty()) {
                 Text(
                     text = "No hay cotizaciones registradas para este cliente.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
                 )
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     items(cotizaciones) { cotizacion ->
                         CotizacionCard(cotizacion = cotizacion)
@@ -96,24 +102,15 @@ fun CotizacionCard(cotizacion: Cotizacion) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Monto: $${cotizacion.monto}",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = cotizacion.estado,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            Text(text = cotizacion.descripcion, style = MaterialTheme.typography.titleSmall)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = cotizacion.descripcion,
+                text = "Monto: $${cotizacion.monto}",
                 style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Estado: ${cotizacion.estado}",
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }

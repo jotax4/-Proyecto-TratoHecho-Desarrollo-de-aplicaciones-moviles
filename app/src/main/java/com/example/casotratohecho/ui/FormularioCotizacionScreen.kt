@@ -4,60 +4,61 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.casotratohecho.data.Cotizacion
+import com.example.casotratohecho.viewmodel.CotizacionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormularioCotizacionScreen(
     clienteId: Int,
-    onVolver: () -> Unit,
-    onGuardarCotizacion: (Cotizacion) -> Unit
+    viewModel: CotizacionViewModel,
+    onVolverClick: () -> Unit
 ) {
     var descripcion by remember { mutableStateOf("") }
     var montoText by remember { mutableStateOf("") }
-    var estado by remember { mutableStateOf("Pendiente") }
-    var errorMonto by remember { mutableStateOf(false) }
+    var errorMensaje by remember { mutableStateOf<String?>(null) }
+
+    fun validarYGuardar() {
+        val montoParsed = montoText.toDoubleOrNull()
+        when {
+            descripcion.isBlank() -> errorMensaje = "La descripción no puede estar vacía."
+            montoParsed == null || montoParsed <= 0 -> errorMensaje = "Ingrese un monto mayor a 0."
+            else -> {
+                viewModel.agregarCotizacion(
+                    Cotizacion(
+                        clienteId = clienteId,
+                        descripcion = descripcion.trim(),
+                        monto = montoParsed,
+                        estado = "Pendiente",
+                        sincronizado = false
+                    )
+                )
+                onVolverClick()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Nueva Cotización / Trato") },
+                title = { Text("Nueva Cotización") },
                 navigationIcon = {
-                    IconButton(onClick = onVolver) {
+                    IconButton(onClick = onVolverClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { validarYGuardar() }) {
+                        Icon(Icons.Default.Check, contentDescription = "Guardar Cotización")
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    val montoDouble = montoText.toDoubleOrNull()
-                    if (montoDouble == null || montoDouble <= 0) {
-                        errorMonto = true
-                    } else {
-                        val nuevaCotizacion = Cotizacion(
-                            clienteId = clienteId,
-                            descripcion = descripcion.trim(),
-                            monto = montoDouble,
-                            estado = estado,
-                            sincronizado = false
-                        )
-                        onGuardarCotizacion(nuevaCotizacion)
-                        onVolver()
-                    }
-                }
-            ) {
-                Icon(Icons.Default.Check, contentDescription = "Guardar Cotización")
-            }
         }
     ) { innerPadding ->
         Column(
@@ -65,33 +66,39 @@ fun FormularioCotizacionScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            errorMensaje?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            OutlinedTextField(
+                value = descripcion,
+                onValueChange = { descripcion = it; errorMensaje = null },
+                label = { Text("Descripción del proyecto / servicio") },
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 3
+            )
+
             OutlinedTextField(
                 value = montoText,
-                onValueChange = {
-                    montoText = it
-                    if (errorMonto) errorMonto = false
-                },
-                label = { Text("Monto *") },
-                leadingIcon = { Icon(Icons.Default.AttachMoney, contentDescription = null) },
+                onValueChange = { montoText = it; errorMensaje = null },
+                label = { Text("Monto ($)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = errorMonto,
-                supportingText = {
-                    if (errorMonto) Text("Ingrese un monto válido", color = MaterialTheme.colorScheme.error)
-                },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
-            OutlinedTextField(
-                value = descripcion,
-                onValueChange = { descripcion = it },
-                label = { Text("Descripción del Trato / Servicio") },
-                leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 4
-            )
+            Button(
+                onClick = { validarYGuardar() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Guardar Cotización")
+            }
         }
     }
 }

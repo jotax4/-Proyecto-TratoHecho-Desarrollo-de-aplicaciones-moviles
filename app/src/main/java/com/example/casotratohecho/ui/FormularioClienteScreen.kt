@@ -4,63 +4,82 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.casotratohecho.data.Cliente
+import com.example.casotratohecho.viewmodel.ClienteViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormularioClienteScreen(
-    onVolver: () -> Unit,
-    onGuardarCliente: (Cliente) -> Unit
+    viewModel: ClienteViewModel,
+    onVolverClick: () -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var rut by remember { mutableStateOf("") }
     var empresa by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
-    var errorNombre by remember { mutableStateOf(false) }
+    var correo by remember { mutableStateOf("") }
+
+    var errorMensaje by remember { mutableStateOf<String?>(null) }
+
+    // Regex para validar formato de RUT Chileno (ej: 12.345.678-K o 12345678-9)
+    val rutRegex = Regex("^[0-9]{1,2}\\.?[0-9]{3}\\.?[0-9]{3}-[0-9kK]{1}$")
+
+    fun validarYGuardar() {
+        val rutLimpio = rut.trim().replace(" ", "")
+        val telefonoLimpio = telefono.trim().filter { it.isDigit() }
+
+        when {
+            nombre.isBlank() -> errorMensaje = "El nombre es obligatorio."
+            rutLimpio.isBlank() -> errorMensaje = "El RUT es obligatorio."
+            !rutRegex.matches(rutLimpio) -> errorMensaje = "Formato de RUT inválido (Ej: 12.345.678-K)."
+            empresa.isBlank() -> errorMensaje = "La empresa es obligatoria."
+            telefonoLimpio.length < 8 -> errorMensaje = "Ingrese un número de teléfono válido (mínimo 8 dígitos)."
+            correo.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches() -> {
+                errorMensaje = "Ingrese un correo electrónico válido."
+            }
+            else -> {
+                val telefonoFinal = if (telefonoLimpio.length == 9 && telefonoLimpio.startsWith("9")) {
+                    "+56 $telefonoLimpio"
+                } else {
+                    "+56 9 $telefonoLimpio"
+                }
+
+                viewModel.agregarCliente(
+                    Cliente(
+                        nombre = nombre.trim(),
+                        rut = rutLimpio.uppercase(),
+                        empresa = empresa.trim(),
+                        telefono = telefonoFinal,
+                        correo = correo.trim(),
+                        sincronizado = false
+                    )
+                )
+                onVolverClick()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Nuevo Cliente") },
                 navigationIcon = {
-                    IconButton(onClick = onVolver) {
+                    IconButton(onClick = onVolverClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { validarYGuardar() }) {
+                        Icon(Icons.Default.Check, contentDescription = "Guardar Cliente")
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    if (nombre.isBlank()) {
-                        errorNombre = true
-                    } else {
-                        val nuevoCliente = Cliente(
-                            nombre = nombre.trim(),
-                            rut = rut.trim(),
-                            empresa = empresa.trim(),
-                            correo = correo.trim(),
-                            telefono = telefono.trim(),
-                            sincronizado = false
-                        )
-                        onGuardarCliente(nuevoCliente)
-                        onVolver()
-                    }
-                }
-            ) {
-                Icon(Icons.Default.Check, contentDescription = "Guardar Cliente")
-            }
         }
     ) { innerPadding ->
         Column(
@@ -68,60 +87,73 @@ fun FormularioClienteScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            errorMensaje?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
             OutlinedTextField(
                 value = nombre,
-                onValueChange = {
-                    nombre = it
-                    if (errorNombre) errorNombre = false
-                },
-                label = { Text("Nombre del Cliente *") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                isError = errorNombre,
-                supportingText = {
-                    if (errorNombre) Text("El nombre es obligatorio", color = MaterialTheme.colorScheme.error)
-                },
+                onValueChange = { nombre = it; errorMensaje = null },
+                label = { Text("Nombre Completo") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             OutlinedTextField(
                 value = rut,
-                onValueChange = { rut = it },
-                label = { Text("RUT / Identificación") },
+                onValueChange = { input ->
+                    // Permite ingresar solo dígitos, puntos, guion y K/k
+                    val filtrado = input.filter { it.isDigit() || it == '.' || it == '-' || it == 'k' || it == 'K' }
+                    rut = filtrado
+                    errorMensaje = null
+                },
+                label = { Text("RUT (Ej: 12.345.678-K)") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             OutlinedTextField(
                 value = empresa,
-                onValueChange = { empresa = it },
+                onValueChange = { empresa = it; errorMensaje = null },
                 label = { Text("Empresa") },
-                leadingIcon = { Icon(Icons.Default.Business, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = correo,
-                onValueChange = { correo = it },
-                label = { Text("Correo Electrónico") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             OutlinedTextField(
                 value = telefono,
-                onValueChange = { telefono = it },
-                label = { Text("Teléfono") },
-                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                onValueChange = { input ->
+                    // Permite ingresar solo números
+                    telefono = input.filter { it.isDigit() }
+                    errorMensaje = null
+                },
+                label = { Text("Teléfono (9 dígitos)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
+
+            OutlinedTextField(
+                value = correo,
+                onValueChange = { correo = it; errorMensaje = null },
+                label = { Text("Correo Electrónico") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Button(
+                onClick = { validarYGuardar() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Guardar Cliente")
+            }
         }
     }
 }

@@ -3,45 +3,36 @@ package com.example.casotratohecho
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.activity.viewModels
+import com.example.casotratohecho.data.AppDatabase
+import com.example.casotratohecho.ui.AppNavigation
 import com.example.casotratohecho.ui.theme.CasoTratoHechoTheme
+import com.example.casotratohecho.viewmodel.ClienteViewModel
+import com.example.casotratohecho.viewmodel.ClienteViewModelFactory
+import com.example.casotratohecho.viewmodel.CotizacionViewModel
+import com.example.casotratohecho.viewmodel.CotizacionViewModelFactory
 
 class MainActivity : ComponentActivity() {
+
+    private val database by lazy { AppDatabase.getDatabase(this) }
+
+    private val clienteViewModel: ClienteViewModel by viewModels {
+        ClienteViewModelFactory(database.clienteDao())
+    }
+
+    private val cotizacionViewModel: CotizacionViewModel by viewModels {
+        CotizacionViewModelFactory(database.cotizacionDao())
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             CasoTratoHechoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppNavigation(
+                    clienteViewModel = clienteViewModel,
+                    cotizacionViewModel = cotizacionViewModel
+                )
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CasoTratoHechoTheme {
-        Greeting("Android")
     }
 }

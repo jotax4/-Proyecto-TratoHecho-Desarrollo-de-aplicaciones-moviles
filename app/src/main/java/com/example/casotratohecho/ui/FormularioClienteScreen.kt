@@ -1,5 +1,13 @@
 package com.example.casotratohecho.ui
 
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -8,10 +16,24 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.casotratohecho.data.Cliente
 import com.example.casotratohecho.viewmodel.ClienteViewModel
+
+// Función auxiliar para activar la respuesta hápica (Vibración)
+private fun vibrarDispositivo(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        vibratorManager.defaultVibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+    } else {
+        @Suppress("DEPRECATION")
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        @Suppress("DEPRECATION")
+        vibrator.vibrate(100)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,6 +41,8 @@ fun FormularioClienteScreen(
     viewModel: ClienteViewModel,
     onVolverClick: () -> Unit
 ) {
+    val context = LocalContext.current
+
     var nombre by remember { mutableStateOf("") }
     var rut by remember { mutableStateOf("") }
     var empresa by remember { mutableStateOf("") }
@@ -27,7 +51,6 @@ fun FormularioClienteScreen(
 
     var errorMensaje by remember { mutableStateOf<String?>(null) }
 
-    // Regex para validar formato de RUT Chileno (ej: 12.345.678-K o 12345678-9)
     val rutRegex = Regex("^[0-9]{1,2}\\.?[0-9]{3}\\.?[0-9]{3}-[0-9kK]{1}$")
 
     fun validarYGuardar() {
@@ -50,6 +73,7 @@ fun FormularioClienteScreen(
                     "+56 9 $telefonoLimpio"
                 }
 
+                vibrarDispositivo(context) // Ejecuta el recurso nativo de vibración
                 viewModel.agregarCliente(
                     Cliente(
                         nombre = nombre.trim(),
@@ -89,12 +113,19 @@ fun FormularioClienteScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            errorMensaje?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+            // Animación fluida de aparición/desaparición del error
+            AnimatedVisibility(
+                visible = errorMensaje != null,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                errorMensaje?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
 
             OutlinedTextField(
@@ -108,7 +139,6 @@ fun FormularioClienteScreen(
             OutlinedTextField(
                 value = rut,
                 onValueChange = { input ->
-                    // Permite ingresar solo dígitos, puntos, guion y K/k
                     val filtrado = input.filter { it.isDigit() || it == '.' || it == '-' || it == 'k' || it == 'K' }
                     rut = filtrado
                     errorMensaje = null
@@ -129,7 +159,6 @@ fun FormularioClienteScreen(
             OutlinedTextField(
                 value = telefono,
                 onValueChange = { input ->
-                    // Permite ingresar solo números
                     telefono = input.filter { it.isDigit() }
                     errorMensaje = null
                 },

@@ -1,14 +1,18 @@
 package com.example.casotratohecho.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.casotratohecho.data.Cotizacion
@@ -24,6 +28,7 @@ fun DetalleClienteScreen(
     onVolverClick: () -> Unit,
     onAgregarCotizacionClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val clientes by clienteViewModel.clientes.collectAsStateWithLifecycle()
     val cliente = clientes.find { it.id == clienteId }
 
@@ -55,7 +60,7 @@ fun DetalleClienteScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            cliente?.let {
+            cliente?.let { cli ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -63,10 +68,27 @@ fun DetalleClienteScreen(
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "RUT: ${it.rut}", style = MaterialTheme.typography.bodyLarge)
-                        Text(text = "Empresa: ${it.empresa}", style = MaterialTheme.typography.bodyLarge)
-                        Text(text = "Teléfono: ${it.telefono}", style = MaterialTheme.typography.bodyMedium)
-                        Text(text = "Correo: ${it.correo}", style = MaterialTheme.typography.bodyMedium)
+                        Text(text = "RUT: ${cli.rut}", style = MaterialTheme.typography.bodyLarge)
+                        Text(text = "Empresa: ${cli.empresa}", style = MaterialTheme.typography.bodyLarge)
+                        Text(text = "Teléfono: ${cli.telefono}", style = MaterialTheme.typography.bodyMedium)
+                        Text(text = "Correo: ${cli.correo}", style = MaterialTheme.typography.bodyMedium)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Acción nativa: Abre la app de llamadas con el número cargado
+                        OutlinedButton(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_DIAL).apply {
+                                    data = Uri.parse("tel:${cli.telefono.replace(" ", "")}")
+                                }
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Filled.Phone, contentDescription = "Llamar")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Llamar al Cliente")
+                        }
                     }
                 }
             }

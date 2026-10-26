@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 class ClienteViewModel(private val clienteDao: ClienteDao) : ViewModel() {
 
-    val clientes: StateFlow<List<Cliente>> = clienteDao.getTodosLosClientes()
+    val clientes: StateFlow<List<Cliente>> = clienteDao.obtenerTodos()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -21,19 +21,13 @@ class ClienteViewModel(private val clienteDao: ClienteDao) : ViewModel() {
 
     fun agregarCliente(cliente: Cliente) {
         viewModelScope.launch {
-            clienteDao.insertarCliente(cliente)
+            clienteDao.insertar(cliente)
         }
     }
 
     fun eliminarCliente(cliente: Cliente) {
         viewModelScope.launch {
-            clienteDao.eliminarCliente(cliente)
-        }
-    }
-
-    fun sincronizarDatos() {
-        viewModelScope.launch {
-            clienteDao.marcarTodosComoSincronizados()
+            clienteDao.eliminar(cliente)
         }
     }
 }

@@ -1,19 +1,19 @@
 package com.example.casotratohecho.data
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ClienteDao {
-    @Query("SELECT * FROM clientes ORDER BY id DESC")
-    fun getTodosLosClientes(): Flow<List<Cliente>>
+    @Query("SELECT * FROM clientes")
+    fun obtenerTodos(): Flow<List<Cliente>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertarCliente(cliente: Cliente)
+    @Insert
+    suspend fun insertar(cliente: Cliente)
 
     @Delete
-    suspend fun eliminarCliente(cliente: Cliente)
-
-    @Query("UPDATE clientes SET sincronizado = 1 WHERE sincronizado = 0")
-    suspend fun marcarTodosComoSincronizados()
+    suspend fun eliminar(cliente: Cliente)
 }

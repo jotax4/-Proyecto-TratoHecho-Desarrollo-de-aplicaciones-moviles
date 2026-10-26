@@ -13,6 +13,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.casotratohecho.data.AppDatabase
 import com.example.casotratohecho.ui.AppNavigation
 import com.example.casotratohecho.ui.theme.CasoTratoHechoTheme
+import com.example.casotratohecho.viewmodel.AuthViewModel
+import com.example.casotratohecho.viewmodel.AuthViewModelFactory
 import com.example.casotratohecho.viewmodel.ClienteViewModel
 import com.example.casotratohecho.viewmodel.ClienteViewModelFactory
 import com.example.casotratohecho.viewmodel.CotizacionViewModel
@@ -21,6 +23,10 @@ import com.example.casotratohecho.viewmodel.CotizacionViewModelFactory
 class MainActivity : ComponentActivity() {
 
     private val database by lazy { AppDatabase.getDatabase(context = this) }
+
+    private val authViewModel: AuthViewModel by viewModels {
+        AuthViewModelFactory(usuarioDao = database.usuarioDao())
+    }
 
     private val clienteViewModel: ClienteViewModel by viewModels {
         ClienteViewModelFactory(clienteDao = database.clienteDao())
@@ -42,6 +48,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     AppNavigation(
                         navController = navController,
+                        authViewModel = authViewModel,
                         clienteViewModel = clienteViewModel,
                         cotizacionViewModel = cotizacionViewModel
                     )

@@ -5,6 +5,7 @@ import com.example.casotratohecho.data.UsuarioDao
 import com.example.casotratohecho.data.remote.LoginRequest
 import com.example.casotratohecho.data.remote.TratoHechoApiService
 import retrofit2.HttpException
+import java.io.IOException
 
 class AuthRepository(
     private val usuarioDao: UsuarioDao,
@@ -27,8 +28,12 @@ class AuthRepository(
                 "Error del servidor (${e.code()}) al registrar usuario."
             }
             Result.failure(Exception(mensaje))
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            e.printStackTrace()
             Result.failure(Exception("No se pudo conectar con el servidor. Verifique su red."))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(Exception("Error local (${e.javaClass.simpleName}): ${e.localizedMessage}"))
         }
     }
 
@@ -48,8 +53,12 @@ class AuthRepository(
                 "Error del servidor (${e.code()}) al iniciar sesión."
             }
             Result.failure(Exception(mensaje))
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            e.printStackTrace()
             Result.failure(Exception("Sin conexión con el servidor. Intente nuevamente."))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(Exception("Error local (${e.javaClass.simpleName}): ${e.localizedMessage}"))
         }
     }
 }

@@ -23,9 +23,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("../keystore/tratohecho.jks")
-            storePassword = "tu_password_keystore"
+            storePassword = "123456"
             keyAlias = "tratohecho_key"
-            keyPassword = "tu_password_key"
+            keyPassword = "123456"
         }
     }
 

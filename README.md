@@ -52,3 +52,19 @@ Deja que Android Studio descargue las dependencias necesarias. Si no inicia auto
 Asegúrate de tener configurado un emulador Android (AVD) o un dispositivo físico conectado en modo Depuración USB.
 
 Presiona el botón Run  en la barra superior de Android Studio o usa el atajo
+
+
+
+## Arquitectura y Separación de Repositorios
+
+El ecosistema **Trato Hecho** está dividido en dos repositorios independientes (Arquitectura Cliente-Servidor desacoplada):
+
+* **Frontend Móvil (Android):** [Enlace al repositorio Android](https://github.com/tu-usuario/tratohecho-android) — Desarrollado en Kotlin con Jetpack Compose, Room (caché local) y Retrofit.
+* **Backend API REST (Spring Boot):** [Enlace al repositorio Backend](https://github.com/tu-usuario/tratohecho-backend) — Desarrollado en Kotlin con Spring Boot, Spring Data JPA y MySQL (`tratohecho_db`).
+
+### ¿Por qué el Backend está en un repositorio aparte?
+
+1. **Desacoplamiento tecnológico (Separation of Concerns):** La aplicación móvil y el servidor operan como sistemas autónomos que se comunican exclusivamente mediante contratos REST/JSON. Separarlos evita mezclar configuraciones y dependencias de distintos entornos (Android SDK/Gradle frente a JDK/Spring Boot).
+2. **Ciclos de desarrollo y despliegue independientes:** Permite realizar mejoras, correcciones o despliegues en la API y la base de datos sin afectar el historial de versiones ni requerir recompilar el cliente Android (y viceversa).
+3. **Control de versiones limpio:** Cada repositorio mantiene un historial de commits enfocado únicamente en su propia capa, facilitando la revisión de código, el mantenimiento y la integración continua (CI/CD).
+4. **Escalabilidad y reutilización:** Al estar aislado, el servicio backend queda preparado para ser consumido por futuros clientes (por ejemplo, un panel administrativo web) sin duplicar lógica de negocio.

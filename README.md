@@ -68,3 +68,12 @@ El ecosistema **Trato Hecho** está dividido en dos repositorios independientes 
 2. **Ciclos de desarrollo y despliegue independientes:** Permite realizar mejoras, correcciones o despliegues en la API y la base de datos sin afectar el historial de versiones ni requerir recompilar el cliente Android (y viceversa).
 3. **Control de versiones limpio:** Cada repositorio mantiene un historial de commits enfocado únicamente en su propia capa, facilitando la revisión de código, el mantenimiento y la integración continua (CI/CD).
 4. **Escalabilidad y reutilización:** Al estar aislado, el servicio backend queda preparado para ser consumido por futuros clientes (por ejemplo, un panel administrativo web) sin duplicar lógica de negocio.
+
+
+
+
+
+
+<img width="1290" height="1078" alt="image" src="https://github.com/user-attachments/assets/3b746944-1d96-4365-9911-76077e77c04e" />
+
+

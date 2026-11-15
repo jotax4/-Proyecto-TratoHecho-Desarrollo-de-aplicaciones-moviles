@@ -2,15 +2,12 @@ package com.example.casotratohecho.data.repository
 
 import com.example.casotratohecho.data.Cotizacion
 import com.example.casotratohecho.data.CotizacionDao
-import com.example.casotratohecho.data.remote.IndicadoresApiService
-import com.example.casotratohecho.data.remote.IndicadoresResponse
 import com.example.casotratohecho.data.remote.TratoHechoApiService
 import kotlinx.coroutines.flow.Flow
 
 class CotizacionRepository(
     private val cotizacionDao: CotizacionDao,
-    private val backendApi: TratoHechoApiService,
-    private val indicadoresApi: IndicadoresApiService
+    private val backendApi: TratoHechoApiService
 ) {
     fun observarCotizacionesPorCliente(clienteId: Int): Flow<List<Cotizacion>> {
         return cotizacionDao.getCotizacionesPorCliente(clienteId)
@@ -43,10 +40,5 @@ class CotizacionRepository(
             backendApi.eliminarCotizacion(cotizacion.id)
         }
         cotizacionDao.eliminarCotizacion(cotizacion)
-    }
-
-    // Consumo de API externa independiente (IE 3.1.4)
-    suspend fun obtenerIndicadoresEconomicos(): IndicadoresResponse {
-        return indicadoresApi.obtenerIndicadores()
     }
 }

@@ -16,17 +16,6 @@ data class LoginRequest(
     @SerializedName("contrasena") val contrasena: String
 )
 
-data class IndicadorDetalle(
-    @SerializedName("codigo") val codigo: String,
-    @SerializedName("nombre") val nombre: String,
-    @SerializedName("valor") val valor: Double
-)
-
-data class IndicadoresResponse(
-    @SerializedName("uf") val uf: IndicadorDetalle,
-    @SerializedName("dolar") val dolar: IndicadorDetalle
-)
-
 interface TratoHechoApiService {
     // Autenticación
     @POST("api/auth/registro")
@@ -60,9 +49,4 @@ interface TratoHechoApiService {
 
     @DELETE("api/cotizaciones/{id}")
     suspend fun eliminarCotizacion(@Path("id") id: Int)
-}
-
-interface IndicadoresApiService {
-    @GET("api")
-    suspend fun obtenerIndicadores(): IndicadoresResponse
 }

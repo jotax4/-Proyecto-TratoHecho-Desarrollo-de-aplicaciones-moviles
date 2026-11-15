@@ -29,6 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.casotratohecho.data.Cliente
 import com.example.casotratohecho.viewmodel.ClienteViewModel
+import com.example.casotratohecho.viewmodel.IndicadoresUiState
+import com.example.casotratohecho.viewmodel.IndicadoresViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +42,9 @@ fun ClienteScreen(
     onAgregarClienteClick: () -> Unit
 ) {
     val clientes by viewModel.clientes.collectAsStateWithLifecycle()
+    val indicadoresViewModel = remember { IndicadoresViewModel() }
+    val indicadoresState by indicadoresViewModel.uiState.collectAsStateWithLifecycle()
+
     var clienteAEliminar by remember { mutableStateOf<Cliente?>(null) }
     var searchQuery by remember { mutableStateOf("") }
 
@@ -109,10 +116,10 @@ fun ClienteScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Acción opcional de sincronización */ }) {
+                    IconButton(onClick = { indicadoresViewModel.cargarIndicadores() }) {
                         Icon(
                             imageVector = Icons.Outlined.Refresh,
-                            contentDescription = "Sincronizar",
+                            contentDescription = "Sincronizar indicadores",
                             tint = primaryColor
                         )
                     }
@@ -154,6 +161,12 @@ fun ClienteScreen(
                 .padding(innerPadding)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
+                // Tarjeta de API Externa (mindicador.cl)
+                IndicadoresEconomicosCard(
+                    state = indicadoresState,
+                    onRefresh = { indicadoresViewModel.cargarIndicadores() }
+                )
+
                 // Buscador rápido
                 if (clientes.isNotEmpty()) {
                     OutlinedTextField(
@@ -185,7 +198,7 @@ fun ClienteScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
                     )
                 }
 
@@ -227,6 +240,109 @@ fun ClienteScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun IndicadoresEconomicosCard(
+    state: IndicadoresUiState,
+    onRefresh: () -> Unit
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val formatoPeso = remember {
+        NumberFormat.getNumberInstance(Locale("es", "CL")).apply {
+            maximumFractionDigits = 2
+        }
+    }
+
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            when {
+                state.isLoading -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Cargando indicadores (UF / Dólar)...",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                state.error -> {
+                    Text(
+                        text = "Indicadores no disponibles sin conexión",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = onRefresh, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Reintentar",
+                            tint = primaryColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+                else -> {
+                    Column {
+                        Text(
+                            text = "UF Hoy",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = state.ufValor?.let { "$${formatoPeso.format(it)}" } ?: "--",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
+                        )
+                    }
+
+                    Column {
+                        Text(
+                            text = "Dólar Observado",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = state.dolarValor?.let { "$${formatoPeso.format(it)}" } ?: "--",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
+                        )
+                    }
+
+                    IconButton(onClick = onRefresh, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "Actualizar indicadores",
+                            tint = primaryColor,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
             }

@@ -41,13 +41,6 @@ class CotizacionViewModel(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    // Estados de la API externa (UF y Dólar - IE 3.1.4)
-    private val _valorUf = MutableStateFlow<Double?>(null)
-    val valorUf: StateFlow<Double?> = _valorUf.asStateFlow()
-
-    private val _valorDolar = MutableStateFlow<Double?>(null)
-    val valorDolar: StateFlow<Double?> = _valorDolar.asStateFlow()
-
     fun seleccionarCliente(clienteId: Int) {
         _clienteIdActual.value = clienteId
         sincronizarCotizaciones(clienteId)
@@ -118,21 +111,6 @@ class CotizacionViewModel(
         }
     }
 
-    // Consulta API externa (mindicador.cl) sin interferir con el microservicio
-    fun cargarIndicadoresEconomicos() {
-        viewModelScope.launch {
-            try {
-                val indicadores = repository.obtenerIndicadoresEconomicos()
-                _valorUf.value = indicadores.uf.valor
-                _valorDolar.value = indicadores.dolar.valor
-            } catch (e: Exception) {
-                // No bloquea el flujo principal si falla la API externa
-                _valorUf.value = null
-                _valorDolar.value = null
-            }
-        }
-    }
-
     fun limpiarError() {
         _errorMessage.value = null
     }
@@ -145,8 +123,7 @@ class CotizacionViewModelFactory(
         if (modelClass.isAssignableFrom(CotizacionViewModel::class.java)) {
             val repository = CotizacionRepository(
                 cotizacionDao = cotizacionDao,
-                backendApi = RetrofitClient.backendApi,
-                indicadoresApi = RetrofitClient.indicadoresApi
+                backendApi = RetrofitClient.backendApi
             )
             @Suppress("UNCHECKED_CAST")
             return CotizacionViewModel(repository) as T

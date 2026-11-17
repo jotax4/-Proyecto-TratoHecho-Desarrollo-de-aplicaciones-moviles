@@ -77,3 +77,10 @@ El ecosistema **Trato Hecho** está dividido en dos repositorios independientes 
 <img width="1290" height="1078" alt="image" src="https://github.com/user-attachments/assets/3b746944-1d96-4365-9911-76077e77c04e" />
 
 
+
+
+
+
+
+## keystore y APK firmado en carpeta keystore
+<img width="642" height="450" alt="image" src="https://github.com/user-attachments/assets/a2503a08-1c93-4a4f-8f8f-5c99eba22d4c" />

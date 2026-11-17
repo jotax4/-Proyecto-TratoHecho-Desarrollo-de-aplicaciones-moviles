@@ -7,10 +7,10 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Patterns
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,7 +23,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -70,6 +69,7 @@ fun RegistroScreen(
     var errorMensaje by remember { mutableStateOf<String?>(null) }
 
     val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
 
     fun validarYRegistrar() {
         focusManager.clearFocus()
@@ -108,8 +108,8 @@ fun RegistroScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        primaryColor.copy(alpha = 0.08f),
-                        MaterialTheme.colorScheme.background,
+                        primaryColor.copy(alpha = 0.12f),
+                        secondaryColor.copy(alpha = 0.04f),
                         MaterialTheme.colorScheme.background
                     )
                 )
@@ -120,48 +120,57 @@ fun RegistroScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = 24.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .background(primaryColor.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
+            Surface(
+                modifier = Modifier.size(72.dp),
+                shape = RoundedCornerShape(22.dp),
+                color = secondaryColor,
+                shadowElevation = 6.dp
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = "Crear cuenta",
-                    tint = primaryColor,
-                    modifier = Modifier.size(40.dp)
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Person,
+                        contentDescription = "Crear cuenta",
+                        tint = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier.size(38.dp)
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Text(
                 text = "Trato Hecho",
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                fontWeight = FontWeight.ExtraBold,
+                color = primaryColor
             )
 
-            Text(
-                text = "Crea tu cuenta para comenzar",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
-            )
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.padding(top = 6.dp, bottom = 22.dp)
+            ) {
+                Text(
+                    text = "Nuevo Ejecutivo • Registro de Cuenta",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp)
+                )
+            }
 
-            ElevatedCard(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.elevatedCardColors(
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 ),
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -172,17 +181,24 @@ fun RegistroScreen(
                     Text(
                         text = "Crear Cuenta",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                    Text(
+                        text = "Completa tus datos para acceder al sistema",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .align(Alignment.Start)
-                            .padding(bottom = 16.dp)
+                            .padding(top = 2.dp, bottom = 18.dp)
                     )
 
                     AnimatedVisibility(visible = !errorMensaje.isNullOrBlank()) {
                         errorMensaje?.let { mensaje ->
                             Surface(
                                 color = MaterialTheme.colorScheme.errorContainer,
-                                shape = RoundedCornerShape(10.dp),
+                                shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(bottom = 16.dp)
@@ -191,6 +207,7 @@ fun RegistroScreen(
                                     text = mensaje,
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                     style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium,
                                     modifier = Modifier.padding(12.dp)
                                 )
                             }
@@ -205,10 +222,14 @@ fun RegistroScreen(
                         },
                         label = { Text("Nombre Completo") },
                         leadingIcon = {
-                            Icon(Icons.Outlined.Person, contentDescription = null)
+                            Icon(
+                                Icons.Outlined.Person,
+                                contentDescription = null,
+                                tint = primaryColor
+                            )
                         },
                         singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Words,
                             imeAction = ImeAction.Next
@@ -226,10 +247,14 @@ fun RegistroScreen(
                         },
                         label = { Text("Correo Electrónico") },
                         leadingIcon = {
-                            Icon(Icons.Outlined.Email, contentDescription = null)
+                            Icon(
+                                Icons.Outlined.Email,
+                                contentDescription = null,
+                                tint = primaryColor
+                            )
                         },
                         singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next
@@ -247,18 +272,23 @@ fun RegistroScreen(
                         },
                         label = { Text("Contraseña (mín. 6 caracteres)") },
                         leadingIcon = {
-                            Icon(Icons.Outlined.Lock, contentDescription = null)
+                            Icon(
+                                Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = primaryColor
+                            )
                         },
                         trailingIcon = {
                             TextButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Text(
                                     text = if (passwordVisible) "Ocultar" else "Ver",
-                                    style = MaterialTheme.typography.labelMedium
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
                         },
                         singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         visualTransformation = if (passwordVisible) {
                             VisualTransformation.None
                         } else {
@@ -281,18 +311,23 @@ fun RegistroScreen(
                         },
                         label = { Text("Confirmar Contraseña") },
                         leadingIcon = {
-                            Icon(Icons.Outlined.Lock, contentDescription = null)
+                            Icon(
+                                Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = primaryColor
+                            )
                         },
                         trailingIcon = {
                             TextButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                                 Text(
                                     text = if (confirmPasswordVisible) "Ocultar" else "Ver",
-                                    style = MaterialTheme.typography.labelMedium
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
                         },
                         singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         visualTransformation = if (confirmPasswordVisible) {
                             VisualTransformation.None
                         } else {
@@ -315,7 +350,7 @@ fun RegistroScreen(
                     Button(
                         onClick = { validarYRegistrar() },
                         enabled = !isLoading,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
@@ -328,16 +363,16 @@ fun RegistroScreen(
                             )
                         } else {
                             Text(
-                                text = "Registrarse",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold
+                                text = "Crear Cuenta",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -352,7 +387,7 @@ fun RegistroScreen(
                     Text(
                         text = "Inicia sesión",
                         fontWeight = FontWeight.Bold,
-                        color = primaryColor
+                        color = secondaryColor
                     )
                 }
             }

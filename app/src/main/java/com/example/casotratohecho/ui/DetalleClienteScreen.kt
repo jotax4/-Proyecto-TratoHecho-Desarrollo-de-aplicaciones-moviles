@@ -2,6 +2,7 @@ package com.example.casotratohecho.ui
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,18 +23,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.casotratohecho.data.Cliente
 import com.example.casotratohecho.data.Cotizacion
+import com.example.casotratohecho.ui.theme.StatusApprovedBg
+import com.example.casotratohecho.ui.theme.StatusApprovedText
+import com.example.casotratohecho.ui.theme.StatusPendingBg
+import com.example.casotratohecho.ui.theme.StatusPendingText
+import com.example.casotratohecho.ui.theme.StatusRejectedBg
+import com.example.casotratohecho.ui.theme.StatusRejectedText
 import com.example.casotratohecho.viewmodel.ClienteViewModel
 import com.example.casotratohecho.viewmodel.CotizacionViewModel
 import java.text.NumberFormat
@@ -66,22 +72,33 @@ fun DetalleClienteScreen(
     val montoTotal = remember(cotizaciones) { cotizaciones.sumOf { it.monto } }
 
     val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Detalle del Cliente",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            text = "Ficha de Cliente",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = primaryColor
+                        )
+                        Text(
+                            text = "Perfil y propuestas comerciales",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onVolverClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = "Volver",
+                            tint = primaryColor
                         )
                     }
                 },
@@ -94,105 +111,102 @@ fun DetalleClienteScreen(
             ExtendedFloatingActionButton(
                 onClick = onAgregarCotizacionClick,
                 shape = RoundedCornerShape(16.dp),
-                containerColor = primaryColor,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = secondaryColor,
+                contentColor = MaterialTheme.colorScheme.onSecondary,
+                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
                 icon = {
                     Icon(Icons.Filled.Add, contentDescription = "Nueva Cotización")
                 },
                 text = {
                     Text(
                         text = "Nueva Cotización",
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold
                     )
                 }
             )
         }
     ) { innerPadding ->
-        Box(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            primaryColor.copy(alpha = 0.05f),
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
-                .padding(innerPadding)
+                .padding(innerPadding),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 8.dp,
+                bottom = 92.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 8.dp,
-                    bottom = 88.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                // 1. Tarjeta de perfil del cliente
-                cliente?.let { cli ->
-                    item {
-                        ClientePerfilCard(
-                            cliente = cli,
-                            onLlamarClick = {
-                                val intent = Intent(Intent.ACTION_DIAL).apply {
-                                    data = Uri.parse("tel:${cli.telefono.replace(" ", "")}")
-                                }
-                                runCatching { context.startActivity(intent) }
-                            },
-                            onCorreoClick = {
-                                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                    data = Uri.parse("mailto:${cli.correo.trim()}")
-                                }
-                                runCatching { context.startActivity(intent) }
-                            }
-                        )
-                    }
-                }
-
-                // 2. Resumen de cotizaciones del cliente
+            // 1. Tarjeta de perfil del cliente
+            cliente?.let { cli ->
                 item {
-                    ResumenCotizacionesCard(
-                        cantidad = cotizaciones.size,
-                        montoTotal = montoTotal
+                    ClientePerfilCard(
+                        cliente = cli,
+                        onLlamarClick = {
+                            val intent = Intent(Intent.ACTION_DIAL).apply {
+                                data = Uri.parse("tel:${cli.telefono.replace(" ", "")}")
+                            }
+                            runCatching { context.startActivity(intent) }
+                        },
+                        onCorreoClick = {
+                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:${cli.correo.trim()}")
+                            }
+                            runCatching { context.startActivity(intent) }
+                        }
                     )
                 }
+            }
 
-                // 3. Encabezado de sección
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Cotizaciones",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (cotizaciones.isNotEmpty()) {
+            // 2. Banner ejecutivo de resumen financiero
+            item {
+                ResumenCotizacionesCard(
+                    cantidad = cotizaciones.size,
+                    montoTotal = montoTotal
+                )
+            }
+
+            // 3. Encabezado de sección
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Historial de Cotizaciones",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    if (cotizaciones.isNotEmpty()) {
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = MaterialTheme.colorScheme.primaryContainer
+                        ) {
                             Text(
                                 text = "${cotizaciones.size} ${if (cotizaciones.size == 1) "registro" else "registros"}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
                     }
                 }
+            }
 
-                // 4. Lista o estado vacío de cotizaciones
-                if (cotizaciones.isEmpty()) {
-                    item {
-                        EmptyCotizacionesState(onAgregarCotizacionClick = onAgregarCotizacionClick)
-                    }
-                } else {
-                    items(cotizaciones, key = { it.id }) { cotizacion ->
-                        CotizacionCard(cotizacion = cotizacion)
-                    }
+            // 4. Lista o estado vacío de cotizaciones
+            if (cotizaciones.isEmpty()) {
+                item {
+                    EmptyCotizacionesState(onAgregarCotizacionClick = onAgregarCotizacionClick)
+                }
+            } else {
+                items(cotizaciones, key = { it.id }) { cotizacion ->
+                    CotizacionCard(cotizacion = cotizacion)
                 }
             }
         }
@@ -206,6 +220,7 @@ private fun ClientePerfilCard(
     onCorreoClick: () -> Unit
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
     val iniciales = remember(cliente.nombre) {
         cliente.nombre
             .trim()
@@ -216,34 +231,34 @@ private fun ClientePerfilCard(
             .ifEmpty { "?" }
     }
 
-    ElevatedCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.elevatedCardColors(
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            // Cabecera con avatar, nombre y empresa
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(primaryColor.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center
+                Surface(
+                    modifier = Modifier.size(58.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
                 ) {
-                    Text(
-                        text = iniciales,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryColor
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = iniciales,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = primaryColor
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(14.dp))
@@ -253,26 +268,35 @@ private fun ClientePerfilCard(
                         text = cliente.nombre,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                     if (cliente.empresa.isNotBlank()) {
-                        Text(
-                            text = cliente.empresa,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = primaryColor,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = MaterialTheme.colorScheme.secondaryContainer
+                        ) {
+                            Text(
+                                text = cliente.empresa,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                            )
+                        }
                     }
                 }
             }
 
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
             )
 
-            // Datos de contacto con íconos
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (cliente.rut.isNotBlank()) {
                     DatoClienteRow(
@@ -299,15 +323,15 @@ private fun ClientePerfilCard(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Botones de contacto rápido
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                FilledTonalButton(
+                Button(
                     onClick = onLlamarClick,
                     enabled = cliente.telefono.isNotBlank(),
-                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
+                    shape = RoundedCornerShape(14.dp),
                     modifier = Modifier
                         .weight(1f)
                         .height(46.dp)
@@ -320,14 +344,16 @@ private fun ClientePerfilCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Llamar",
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
                 if (cliente.correo.isNotBlank()) {
                     OutlinedButton(
                         onClick = onCorreoClick,
-                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.2.dp, secondaryColor),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = secondaryColor),
+                        shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .weight(1f)
                             .height(46.dp)
@@ -340,7 +366,7 @@ private fun ClientePerfilCard(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Correo",
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -356,12 +382,20 @@ private fun DatoClienteRow(
     valor: String
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icono,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp)
-        )
+        Surface(
+            modifier = Modifier.size(30.dp),
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icono,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
         Spacer(modifier = Modifier.width(10.dp))
         Text(
             text = "$etiqueta: ",
@@ -371,7 +405,7 @@ private fun DatoClienteRow(
         Text(
             text = valor,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -385,47 +419,61 @@ private fun ResumenCotizacionesCard(
     montoTotal: Double
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
+    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
 
-    ElevatedCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = primaryColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            primaryColor,
+                            primaryColor.copy(alpha = 0.85f)
+                        )
+                    )
+                )
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            Column {
-                Text(
-                    text = "Total Cotizado",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = formatearMonto(montoTotal),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = primaryColor
-                )
-            }
-
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = primaryColor.copy(alpha = 0.10f)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "$cantidad ${if (cantidad == 1) "cotización" else "cotizaciones"}",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = primaryColor,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                )
+                Column {
+                    Text(
+                        text = "TOTAL COTIZADO",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.6.sp,
+                        color = onPrimaryColor.copy(alpha = 0.78f)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = formatearMonto(montoTotal),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = onPrimaryColor
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = onPrimaryColor.copy(alpha = 0.14f)
+                ) {
+                    Text(
+                        text = "$cantidad ${if (cantidad == 1) "cotización" else "cotizaciones"}",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = onPrimaryColor,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
+                    )
+                }
             }
         }
     }
@@ -434,42 +482,45 @@ private fun ResumenCotizacionesCard(
 @Composable
 private fun EmptyCotizacionesState(onAgregarCotizacionClick: () -> Unit) {
     val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
 
-    ElevatedCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.elevatedCardColors(
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(26.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(primaryColor.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
+            Surface(
+                modifier = Modifier.size(64.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Create,
-                    contentDescription = null,
-                    tint = primaryColor,
-                    modifier = Modifier.size(28.dp)
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Create,
+                        contentDescription = null,
+                        tint = primaryColor,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Text(
                 text = "Sin cotizaciones aún",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
@@ -477,12 +528,14 @@ private fun EmptyCotizacionesState(onAgregarCotizacionClick: () -> Unit) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
             )
 
-            OutlinedButton(
+            Button(
                 onClick = onAgregarCotizacionClick,
-                shape = RoundedCornerShape(12.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = secondaryColor),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.height(46.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
@@ -490,7 +543,10 @@ private fun EmptyCotizacionesState(onAgregarCotizacionClick: () -> Unit) {
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Crear cotización")
+                Text(
+                    text = "Crear cotización",
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
@@ -503,23 +559,24 @@ fun CotizacionCard(cotizacion: Cotizacion) {
 
     val (badgeBg, badgeText) = when {
         estadoNormalizado.contains("aproba") || estadoNormalizado.contains("acepta") -> {
-            Color(0xFF1B873F).copy(alpha = 0.12f) to Color(0xFF146C32)
+            StatusApprovedBg to StatusApprovedText
         }
         estadoNormalizado.contains("rechaza") || estadoNormalizado.contains("cancela") -> {
-            MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+            StatusRejectedBg to StatusRejectedText
         }
         else -> {
-            MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+            StatusPendingBg to StatusPendingText
         }
     }
 
-    ElevatedCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.elevatedCardColors(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -534,7 +591,8 @@ fun CotizacionCard(cotizacion: Cotizacion) {
                 Text(
                     text = cotizacion.descripcion,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
@@ -543,20 +601,23 @@ fun CotizacionCard(cotizacion: Cotizacion) {
                 )
 
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(50),
                     color = badgeBg
                 ) {
                     Text(
                         text = cotizacion.estado,
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
                         color = badgeText,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.30f)
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -566,17 +627,13 @@ fun CotizacionCard(cotizacion: Cotizacion) {
                 Text(
                     text = formatearMonto(cotizacion.monto),
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     color = primaryColor
                 )
 
                 Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = if (cotizacion.sincronizado) {
-                        primaryColor.copy(alpha = 0.10f)
-                    } else {
-                        MaterialTheme.colorScheme.errorContainer
-                    }
+                    shape = RoundedCornerShape(50),
+                    color = if (cotizacion.sincronizado) StatusApprovedBg else StatusPendingBg
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
@@ -589,23 +646,15 @@ fun CotizacionCard(cotizacion: Cotizacion) {
                                 Icons.Outlined.Refresh
                             },
                             contentDescription = null,
-                            tint = if (cotizacion.sincronizado) {
-                                primaryColor
-                            } else {
-                                MaterialTheme.colorScheme.onErrorContainer
-                            },
+                            tint = if (cotizacion.sincronizado) StatusApprovedText else StatusPendingText,
                             modifier = Modifier.size(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = if (cotizacion.sincronizado) "Sincronizado" else "Pendiente",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Medium,
-                            color = if (cotizacion.sincronizado) {
-                                primaryColor
-                            } else {
-                                MaterialTheme.colorScheme.onErrorContainer
-                            }
+                            fontWeight = FontWeight.Bold,
+                            color = if (cotizacion.sincronizado) StatusApprovedText else StatusPendingText
                         )
                     }
                 }

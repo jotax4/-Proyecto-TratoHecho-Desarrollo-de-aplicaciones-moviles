@@ -1,9 +1,9 @@
 package com.example.casotratohecho.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -43,6 +43,7 @@ fun LoginScreen(
 
     val focusManager = LocalFocusManager.current
     val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
     val canSubmit = !isLoading && correo.isNotBlank() && contrasena.isNotBlank()
 
     fun ejecutarLogin() {
@@ -62,8 +63,8 @@ fun LoginScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        primaryColor.copy(alpha = 0.08f),
-                        MaterialTheme.colorScheme.background,
+                        primaryColor.copy(alpha = 0.12f),
+                        secondaryColor.copy(alpha = 0.04f),
                         MaterialTheme.colorScheme.background
                     )
                 )
@@ -78,19 +79,21 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .background(primaryColor.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
+            // Emblema corporativo
+            Surface(
+                modifier = Modifier.size(76.dp),
+                shape = RoundedCornerShape(22.dp),
+                color = primaryColor,
+                shadowElevation = 6.dp
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.CheckCircle,
-                    contentDescription = "Logo Trato Hecho",
-                    tint = primaryColor,
-                    modifier = Modifier.size(40.dp)
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.CheckCircle,
+                        contentDescription = "Logo Trato Hecho",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -98,24 +101,32 @@ fun LoginScreen(
             Text(
                 text = "Trato Hecho",
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                fontWeight = FontWeight.ExtraBold,
+                color = primaryColor
             )
 
-            Text(
-                text = "Gestiona tus clientes y cotizaciones",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp, bottom = 28.dp)
-            )
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.padding(top = 6.dp, bottom = 26.dp)
+            ) {
+                Text(
+                    text = "CRM • Gestión de Clientes y Cotizaciones",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp)
+                )
+            }
 
-            ElevatedCard(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.elevatedCardColors(
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 ),
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -126,16 +137,23 @@ fun LoginScreen(
                     Text(
                         text = "Iniciar Sesión",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                    Text(
+                        text = "Ingresa tus credenciales para continuar",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .align(Alignment.Start)
-                            .padding(bottom = 16.dp)
+                            .padding(top = 2.dp, bottom = 18.dp)
                     )
 
                     if (!errorMessage.isNullOrBlank()) {
                         Surface(
                             color = MaterialTheme.colorScheme.errorContainer,
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp)
@@ -144,6 +162,7 @@ fun LoginScreen(
                                 text = errorMessage!!,
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                                 style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(12.dp)
                             )
                         }
@@ -157,10 +176,14 @@ fun LoginScreen(
                         },
                         label = { Text("Correo Electrónico") },
                         leadingIcon = {
-                            Icon(Icons.Outlined.Email, contentDescription = null)
+                            Icon(
+                                Icons.Outlined.Email,
+                                contentDescription = null,
+                                tint = primaryColor
+                            )
                         },
                         singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next
@@ -178,18 +201,23 @@ fun LoginScreen(
                         },
                         label = { Text("Contraseña") },
                         leadingIcon = {
-                            Icon(Icons.Outlined.Lock, contentDescription = null)
+                            Icon(
+                                Icons.Outlined.Lock,
+                                contentDescription = null,
+                                tint = primaryColor
+                            )
                         },
                         trailingIcon = {
                             TextButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Text(
                                     text = if (passwordVisible) "Ocultar" else "Ver",
-                                    style = MaterialTheme.typography.labelMedium
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
                         },
                         singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         visualTransformation = if (passwordVisible) {
                             VisualTransformation.None
                         } else {
@@ -212,7 +240,7 @@ fun LoginScreen(
                     Button(
                         onClick = { ejecutarLogin() },
                         enabled = canSubmit,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
@@ -225,9 +253,9 @@ fun LoginScreen(
                             )
                         } else {
                             Text(
-                                text = "Ingresar",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold
+                                text = "Ingresar al Sistema",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
@@ -241,7 +269,7 @@ fun LoginScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "¿No tienes cuenta?",
+                    text = "¿Aún no tienes cuenta?",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -249,7 +277,7 @@ fun LoginScreen(
                     Text(
                         text = "Regístrate aquí",
                         fontWeight = FontWeight.Bold,
-                        color = primaryColor
+                        color = secondaryColor
                     )
                 }
             }

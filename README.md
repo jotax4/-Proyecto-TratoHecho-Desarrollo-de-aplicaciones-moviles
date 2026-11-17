@@ -74,7 +74,8 @@ El ecosistema **Trato Hecho** está dividido en dos repositorios independientes 
 
 
 ## cobertura unitaria >98% en viewmodel y repository
-<img width="1290" height="1078" alt="image" src="https://github.com/user-attachments/assets/3b746944-1d96-4365-9911-76077e77c04e" />
+<img width="1290" height="1078" alt="image" src="https://github.com/user-attachments/assets/3b746944-1d96-4365-9911-76077e77c04e" />                         <img width="986" height="676" alt="image" src="https://github.com/user-attachments/assets/7b30fd75-1242-4931-aab9-2ee51b572fb7" />
+
 
 
 
